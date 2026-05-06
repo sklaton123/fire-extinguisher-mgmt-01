@@ -1,73 +1,319 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>스마트 소화기 관리 시스템</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { margin: 0; display: flex; background-color: #f3f4f6; height: 100vh; color: #333; }
-        .sidebar { width: 250px; background: white; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.05); z-index: 10; }
-        .logo { font-size: 20px; font-weight: bold; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; color: #4f46e5; }
-        .menu-btn { display: block; width: 100%; padding: 15px; margin-bottom: 10px; border: none; background: transparent; border-radius: 8px; cursor: pointer; text-align: left; font-size: 15px; font-weight: bold; color: #6b7280; transition: 0.2s; }
-        .menu-btn.active { background: #4f46e5; color: white; }
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .view-section { display: none; }
-        .view-section.active { display: block; }
-        
-        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        .header-left { display: flex; align-items: center; gap: 15px; }
-        
-        .btn { padding: 8px 15px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; color: white; transition: 0.2s; }
-        .btn-primary { background: #4f46e5; }
-        .btn-excel { background: #059669; }
-        .btn:hover { opacity: 0.8; }
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-        .viz-container { display: flex; gap: 20px; margin-bottom: 30px; }
-        .viz-card { flex: 1; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180px; }
-        .donut-chart { width: 100px; height: 100px; border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; }
-        .donut-inner { width: 75px; height: 75px; background: white; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 2; }
-        
-        .card-container { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-        .mini-card { flex: 1; min-width: 100px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center; border-top: 4px solid #e5e7eb; }
-        .mini-card h4 { margin: 0 0 5px 0; font-size: 11px; color: #6b7280; }
-        .mini-card .num { font-size: 18px; font-weight: bold; }
-        .card-total { border-top-color: #4f46e5; }
-        .card-type { border-top-color: #94a3b8; }
-        .card-warn { border-top-color: #dc2626; background-color: #fef2f2; }
-        .card-warn .num { color: #dc2626; }
+        body {
+            margin: 0;
+            display: flex;
+            background-color: #f3f4f6;
+            height: 100vh;
+            color: #333;
+        }
 
-        .table-wrapper { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed; }
-        th, td { padding: 10px 5px; border-bottom: 1px solid #e5e7eb; font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        th { background-color: #f9fafb; font-weight: 600; }
-        tr.danger { background-color: #fef2f2; }
-        
-        .action-btn { padding: 5px 4px; border: none; border-radius: 4px; cursor: pointer; font-size: 9px; color: white; }
-        .check-btn { background: #4f46e5; width: 100%; }
-        .check-btn.done { background: #16a34a; }
-        .edit-btn-sm { background: #6b7280; width: 48%; }
-        .del-btn-sm { background: #ef4444; width: 48%; }
+        .sidebar {
+            width: 250px;
+            background: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+            z-index: 10;
+        }
 
-        .tabs { display: flex; gap: 8px; margin-bottom: 15px; overflow-x: auto; }
-        .tab-btn { padding: 8px 15px; border: none; background: #e5e7eb; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px; white-space: nowrap; }
-        .tab-btn.active { background: #4f46e5; color: white; }
-        
-        .form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; background: white; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb; }
-        .form-group { display: flex; flex-direction: column; gap: 4px; }
-        .form-group label { font-size: 10px; font-weight: bold; }
-        .form-group input, .form-group select { padding: 6px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 11px; }
-        .submit-btn { grid-column: span 4; padding: 10px; background: #4f46e5; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #4f46e5;
+        }
+
+        .menu-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 15px;
+            font-weight: bold;
+            color: #6b7280;
+            transition: 0.2s;
+        }
+
+        .menu-btn.active {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 11px;
+            color: white;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+        }
+
+        .btn-excel {
+            background: #059669;
+        }
+
+        .btn-undo {
+            background: #dc2626;
+            margin-left: 5px;
+        }
+
+        /* 대시보드 시각화 */
+        .viz-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .viz-card {
+            flex: 1;
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 180px;
+        }
+
+        .donut-chart {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .donut-inner {
+            width: 75px;
+            height: 75px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        /* 요약 카드 */
+        .card-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .mini-card {
+            flex: 1;
+            min-width: 100px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            border-top: 4px solid #e5e7eb;
+        }
+
+        .mini-card h4 {
+            margin: 0 0 5px 0;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .mini-card .num {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .card-total {
+            border-top-color: #4f46e5;
+        }
+
+        .card-warn {
+            border-top-color: #dc2626;
+            background-color: #fef2f2;
+        }
+
+        .card-warn .num {
+            color: #dc2626;
+        }
+
+        .table-wrapper {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            table-layout: fixed;
+        }
+
+        th,
+        td {
+            padding: 10px 5px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 8px 15px;
+            border: none;
+            background: #e5e7eb;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 6px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .submit-btn {
+            grid-column: span 4;
+            padding: 10px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .action-btn {
+            padding: 5px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 9px;
+            color: white;
+        }
+
+        .check-btn {
+            background: #4f46e5;
+        }
+
+        .edit-btn {
+            background: #6b7280;
+        }
+
+        .del-btn {
+            background: #ef4444;
+        }
     </style>
 </head>
+
 <body>
     <div class="sidebar">
         <div class="logo">🧯 소화기 Pro</div>
-        <button class="menu-btn active" onclick="switchMenu('dashboard')">📊 전체 대시보드</button>
-        <button class="menu-btn" onclick="switchMenu('team')">🏢 팀별 관리대장</button>
+        <button class="menu-btn active" id="btn-menu-dash" onclick="switchMenu('dashboard')">📊 전체 대시보드</button>
+        <button class="menu-btn" id="btn-menu-team" onclick="switchMenu('team')">🏢 팀별 관리대장</button>
     </div>
-    
+
     <div class="main-content">
         <!-- 1. 전체 대시보드 -->
         <div id="view-dashboard" class="view-section active">
@@ -75,27 +321,48 @@
             <div class="viz-container">
                 <div class="viz-card">
                     <h3>전체 보관 수량</h3>
-                    <div id="total-donut" class="donut-chart"><div class="donut-inner"><div style="font-size:22px; font-weight:bold;" id="dash-total">0</div><div style="font-size:10px; color:#999;">TOTAL</div></div></div>
+                    <div id="total-donut" class="donut-chart">
+                        <div class="donut-inner">
+                            <div style="font-size:22px; font-weight:bold;" id="dash-total">0</div>
+                            <div style="font-size:10px; color:#999;">TOTAL</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="viz-card" style="align-items: flex-start;">
                     <h3>상태 요약</h3>
                     <div style="width:100%; margin-top:10px;">
-                        <div style="display:flex; justify-content:space-between; font-size:12px;"><span>정상</span><span id="dash-normal-txt">0</span></div>
-                        <div style="width:100%; height:8px; background:#eee; border-radius:4px; margin-bottom:10px;"><div id="dash-normal-bar" style="height:100%; background:#16a34a; border-radius:4px; width:0%;"></div></div>
-                        <div style="display:flex; justify-content:space-between; font-size:12px; color:#dc2626;"><span>🚨 교체 경고</span><span id="dash-warning-txt">0</span></div>
-                        <div style="width:100%; height:8px; background:#eee; border-radius:4px;"><div id="dash-warning-bar" style="height:100%; background:#dc2626; border-radius:4px; width:0%;"></div></div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px;"><span>정상</span><span
+                                id="dash-normal-txt">0</span></div>
+                        <div style="width:100%; height:8px; background:#eee; border-radius:4px; margin-bottom:10px;">
+                            <div id="dash-normal-bar"
+                                style="height:100%; background:#16a34a; border-radius:4px; width:0%;"></div>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; color:#dc2626;">
+                            <span>🚨 교체 경고</span><span id="dash-warning-txt">0</span></div>
+                        <div style="width:100%; height:8px; background:#eee; border-radius:4px;">
+                            <div id="dash-warning-bar"
+                                style="height:100%; background:#dc2626; border-radius:4px; width:0%;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
             <div class="table-wrapper">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3>통합 목록</h3>
-                    <select id="dash-team-filter" onchange="updateDashboard()" style="padding:6px; border-radius:4px; font-size:11px;"></select>
-                </div>
-                <table style="min-width: 1400px;">
+                <h3>통합 목록</h3>
+                <table style="min-width: 1500px;">
                     <thead>
                         <tr>
-                            <th>소화기관리번호</th><th>종류</th><th>용량</th><th>해당부서</th><th>건물명</th><th>세부위치</th><th>제조업체명</th><th>제조일</th><th>교체예정일</th><th>변경/조치내역</th><th>상태</th><th>최근점검</th>
+                            <th>소화기관리번호</th>
+                            <th>종류</th>
+                            <th>용량</th>
+                            <th>해당부서</th>
+                            <th>건물명</th>
+                            <th>세부위치</th>
+                            <th>제조업체명</th>
+                            <th>제조일</th>
+                            <th>교체예정일</th>
+                            <th>변경/조치내역</th>
+                            <th>상태</th>
+                            <th>최근점검</th>
                         </tr>
                     </thead>
                     <tbody id="all-table-body"></tbody>
@@ -107,47 +374,85 @@
         <div id="view-team" class="view-section">
             <div class="header-area">
                 <div class="header-left">
-                    <h1>팀별 세부 관리</h1>
+                    <h1 id="current-team-header">팀별 세부 관리</h1>
                     <button class="btn btn-primary" onclick="addTeam()">+ 새 팀 추가</button>
                 </div>
                 <div class="header-right">
-                    <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv" style="display:none;" onchange="importExcel(event)">
-                    <button class="btn btn-excel" onclick="document.getElementById('excel-upload').click()">📂 엑셀 불러오기</button>
+                    <input type="file" id="excel-upload" accept=".xlsx, .xls, .csv" style="display:none;"
+                        onchange="importExcel(event)">
+                    <button class="btn btn-excel" onclick="document.getElementById('excel-upload').click()">📂 엑셀
+                        불러오기</button>
+                    <button class="btn btn-undo" id="undo-btn" style="display:none;" onclick="undoAction()">↩️ 불러오기
+                        취소</button>
                 </div>
             </div>
-            
+
             <div class="tabs" id="team-tabs"></div>
 
-            <div class="card-container" id="team-mini-dash">
-                <div class="mini-card card-total"><h4>팀 전체</h4><div class="num" id="team-total-num">0</div></div>
-                <div class="mini-card card-type"><h4>분말</h4><div class="num" id="team-powder-num">0</div></div>
-                <div class="mini-card card-type"><h4>CO2</h4><div class="num" id="team-co2-num">0</div></div>
-                <div class="mini-card card-type"><h4>청정</h4><div class="num" id="team-clean-num">0</div></div>
-                <div class="mini-card card-warn"><h4>🚨 교체임박</h4><div class="num" id="team-warn-num">0</div></div>
+            <div class="card-container">
+                <div class="mini-card card-total">
+                    <h4>팀 전체</h4>
+                    <div class="num" id="team-total-num">0</div>
+                </div>
+                <div class="mini-card">
+                    <h4>분말</h4>
+                    <div class="num" id="team-powder-num">0</div>
+                </div>
+                <div class="mini-card">
+                    <h4>CO2</h4>
+                    <div class="num" id="team-co2-num">0</div>
+                </div>
+                <div class="mini-card">
+                    <h4>청정</h4>
+                    <div class="num" id="team-clean-num">0</div>
+                </div>
+                <div class="mini-card card-warn">
+                    <h4>🚨 교체임박</h4>
+                    <div class="num" id="team-warn-num">0</div>
+                </div>
             </div>
 
             <div class="form-grid">
                 <input type="hidden" id="edit-index" value="-1">
-                <div class="form-group"><label>해당부서</label><input type="text" id="input-team" readonly style="background:#f3f4f6;"></div>
+                <div class="form-group"><label>해당부서</label><input type="text" id="input-team" readonly
+                        style="background:#f3f4f6;"></div>
                 <div class="form-group"><label>소화기관리번호</label><input type="text" id="input-id"></div>
-                <div class="form-group"><label>종류</label><select id="input-type" onchange="handleTypeChange()"><option value="분말">분말</option><option value="CO2">CO2</option><option value="청정">청정</option></select></div>
+                <div class="form-group"><label>종류</label><select id="input-type" onchange="handleTypeChange()">
+                        <option value="분말">분말</option>
+                        <option value="CO2">CO2</option>
+                        <option value="청정">청정</option>
+                    </select></div>
                 <div class="form-group"><label>용량</label><input type="text" id="input-cap"></div>
                 <div class="form-group"><label>건물명</label><input type="text" id="input-building"></div>
                 <div class="form-group"><label>세부위치</label><input type="text" id="input-loc"></div>
                 <div class="form-group"><label>제조업체명</label><input type="text" id="input-maker"></div>
-                <!-- [수정] 입력 타입을 month로 변경 -->
-                <div class="form-group"><label>제조일</label><input type="month" id="input-mdate" onchange="autoCalcDate()"></div>
+                <div class="form-group"><label>제조일</label><input type="month" id="input-mdate"
+                        onchange="autoCalcDate()"></div>
                 <div class="form-group"><label>교체예정일</label><input type="month" id="input-rdate"></div>
-                <div class="form-group" style="grid-column: span 4;"><label>변경/조치내역</label><input type="text" id="input-note"></div>
+                <div class="form-group" style="grid-column: span 4;"><label>변경/조치내역</label><input type="text"
+                        id="input-note"></div>
                 <button class="submit-btn" id="btn-submit" onclick="addData()">데이터 저장하기</button>
             </div>
 
             <div class="table-wrapper">
                 <h3 id="current-team-title">목록</h3>
-                <table style="min-width: 1500px;">
+                <table style="min-width: 1600px;">
                     <thead>
                         <tr>
-                            <th>소화기관리번호</th><th>종류</th><th>용량</th><th>해당부서</th><th>건물명</th><th>세부위치</th><th>제조업체명</th><th>제조일</th><th>교체예정일</th><th>변경/조치내역</th><th>상태</th><th>최근점검</th><th>점검</th><th>내용수정</th>
+                            <th>소화기관리번호</th>
+                            <th>종류</th>
+                            <th>용량</th>
+                            <th>해당부서</th>
+                            <th>건물명</th>
+                            <th>세부위치</th>
+                            <th>제조업체명</th>
+                            <th>제조일</th>
+                            <th>교체예정일</th>
+                            <th>변경/조치내역</th>
+                            <th>상태</th>
+                            <th>최근점검</th>
+                            <th>점검</th>
+                            <th>내용수정</th>
                         </tr>
                     </thead>
                     <tbody id="team-table-body"></tbody>
@@ -157,88 +462,71 @@
     </div>
 
     <script>
-        let db = [
-            { id: '제조4-1F-01', type: '분말', cap: '20KG', team: '제조4팀', building: 'T2-8동', loc: '1층 계단 앞', maker: '한국소방', mdate: '2016-02', rdate: '2026-01', note: '-', lastCheck: '2026-05-04' },
-            { id: '전해-1F-10', type: '분말', cap: '6KG', team: '전해액제조팀', building: '본관', loc: '복도', maker: '일명', mdate: '2017-11', rdate: '2027-10', note: '-', lastCheck: '-' }
-        ];
+        let db = [];
+        let dbBackup = null;
         let teams = ['전해액제조팀', '제조4팀', '시설관리팀', '공무팀'];
         let currentTeam = '전해액제조팀';
-
-        function autoCalcDate() {
-            let mdate = document.getElementById('input-mdate').value; // YYYY-MM 형식
-            if (document.getElementById('input-type').value === '분말' && mdate) {
-                let parts = mdate.split('-');
-                let year = parseInt(parts[0]);
-                let month = parseInt(parts[1]);
-                
-                // 9년 11개월 뒤 계산
-                let targetDate = new Date(year + 9, month + 10); 
-                let rYear = targetDate.getFullYear();
-                let rMonth = String(targetDate.getMonth() + 1).padStart(2, '0');
-                
-                document.getElementById('input-rdate').value = `${rYear}-${rMonth}`;
-            }
-        }
-
-        function formatDate(val) {
-            if (!val || val === '-') return '-';
-            // 만약 YYYY-MM-DD 형식이 들어오면 YYYY-MM으로 자름
-            return val.length > 7 ? val.substring(0, 7) : val;
-        }
 
         function importExcel(event) {
             const file = event.target.files[0];
             const reader = new FileReader();
             reader.onload = (e) => {
+                dbBackup = JSON.parse(JSON.stringify(db));
+                document.getElementById('undo-btn').style.display = 'inline-block';
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
                 json.forEach(row => {
+                    const rowTeam = row['해당부서'] || currentTeam;
+                    if (!teams.includes(rowTeam)) teams.push(rowTeam);
                     db.push({
-                        id: row['소화기관리번호'] || '미기입', type: row['종류'] || '분말', cap: row['용량'] || '', team: row['해당부서'] || currentTeam,
-                        building: row['건물명'] || '', loc: row['세부위치'] || '', maker: row['제조업체명'] || '', 
-                        mdate: formatDate(row['제조일']), rdate: formatDate(row['교체예정일']), 
-                        note: row['변경/조치내역'] || '', lastCheck: '-'
+                        id: String(row['소화기관리번호'] || '미기입'),
+                        type: row['종류'] || '분말',
+                        cap: row['용량'] || '',
+                        team: rowTeam,
+                        building: row['건물명'] || '',
+                        loc: row['세부위치'] || '',
+                        maker: row['제조업체명'] || '',
+                        mdate: row['제조일'] ? String(row['제조일']).substring(0, 7) : '-',
+                        rdate: row['교체예정일'] ? String(row['교체예정일']).substring(0, 7) : '-',
+                        note: row['변경/조치내역'] || '',
+                        lastCheck: '-'
                     });
                 });
-                updateDashboard(); updateTeamView(); alert('엑셀 데이터 로드 완료!');
+                renderTabs(); updateDashboard(); alert('엑셀 데이터가 부서별로 자동 분류되어 업로드되었습니다.');
             };
             reader.readAsArrayBuffer(file);
         }
 
-        function switchMenu(m) {
-            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById(`view-${m}`).classList.add('active');
-            if(m === 'dashboard') updateDashboard();
+        function undoAction() {
+            if (dbBackup && confirm('마지막 불러오기 작업을 취소하시겠습니까?')) {
+                db = JSON.parse(JSON.stringify(dbBackup));
+                dbBackup = null;
+                document.getElementById('undo-btn').style.display = 'none';
+                updateDashboard(); updateTeamView(); alert('실행 취소 완료');
+            }
         }
 
-        function isWarning(t, r) { 
-            if (t !== '분말' || !r || r === '-') return false; 
-            // 년-월 형식이므로 1일로 가정하여 비교
-            let d = (new Date(r + "-01") - new Date()) / (1000 * 60 * 60 * 24); 
-            return d <= 180; 
+        function isWarning(t, r) {
+            if (t !== '분말' || !r || r === '-') return false;
+            let d = (new Date(r + "-01") - new Date()) / (1000 * 60 * 60 * 24);
+            return d <= 180;
         }
 
         function updateDashboard() {
-            let f = document.getElementById('dash-team-filter');
-            let val = f.value || 'all';
-            f.innerHTML = '<option value="all">전체 팀 보기</option>';
-            teams.forEach(t => f.innerHTML += `<option value="${t}" ${t===val?'selected':''}>${t}</option>`);
-            let data = (val === 'all') ? db : db.filter(i => i.team === val);
-            let total = data.length, warn = data.filter(i => isWarning(i.type, i.rdate)).length, norm = total - warn;
+            let total = db.length, warn = db.filter(i => isWarning(i.type, i.rdate)).length, norm = total - warn;
             let pct = total > 0 ? (norm / total) * 100 : 0;
             document.getElementById('dash-total').innerText = total;
             document.getElementById('dash-normal-txt').innerText = norm;
             document.getElementById('dash-warning-txt').innerText = warn;
             document.getElementById('dash-normal-bar').style.width = pct + '%';
-            document.getElementById('dash-warning-bar').style.width = (total > 0 ? (warn/total)*100 : 0) + '%';
+            document.getElementById('dash-warning-bar').style.width = (total > 0 ? (warn / total) * 100 : 0) + '%';
             document.getElementById('total-donut').style.background = `conic-gradient(#16a34a 0% ${pct}%, #dc2626 ${pct}% 100%)`;
+
             let body = document.getElementById('all-table-body'); body.innerHTML = '';
-            data.forEach(i => {
+            db.forEach(i => {
                 let w = isWarning(i.type, i.rdate);
-                body.innerHTML += `<tr><td>${i.id}</td><td>${i.type}</td><td>${i.cap}</td><td>${i.team}</td><td>${i.building}</td><td>${i.loc}</td><td>${i.maker}</td><td>${i.mdate}</td><td>${i.rdate}</td><td>${i.note}</td><td>${w?'🚨경고':'🟢정상'}</td><td>${i.lastCheck}</td></tr>`;
+                body.innerHTML += `<tr><td>${i.id}</td><td>${i.type}</td><td>${i.cap}</td><td>${i.team}</td><td>${i.building}</td><td>${i.loc}</td><td>${i.maker}</td><td>${i.mdate}</td><td>${i.rdate}</td><td>${i.note}</td><td>${w ? '🚨경고' : '🟢정상'}</td><td>${i.lastCheck}</td></tr>`;
             });
         }
 
@@ -249,34 +537,47 @@
             document.getElementById('team-co2-num').innerText = data.filter(i => i.type === 'CO2').length;
             document.getElementById('team-clean-num').innerText = data.filter(i => i.type === '청정').length;
             document.getElementById('team-warn-num').innerText = data.filter(i => isWarning(i.type, i.rdate)).length;
+
             let body = document.getElementById('team-table-body'); body.innerHTML = '';
             data.forEach(i => {
-                let w = isWarning(i.type, i.rdate), isDone = i.lastCheck === new Date().toISOString().split('T')[0];
-                body.innerHTML += `<tr class="${w?'danger':''}">
-                    <td>${i.id}</td><td>${i.type}</td><td>${i.cap}</td><td>${i.team}</td><td>${i.building}</td><td>${i.loc}</td><td>${i.maker}</td><td>${i.mdate}</td><td>${i.rdate}</td><td>${i.note}</td><td>${w?'🚨경고':'🟢정상'}</td><td>${i.lastCheck}</td>
-                    <td><button class="action-btn check-btn ${isDone?'done':''}" onclick="markChecked('${i.id}')">${isDone?'완료':'점검'}</button></td>
-                    <td><div style="display:flex; gap:2px;"><button class="action-btn edit-btn-sm" onclick="editMode('${i.id}')">수정</button><button class="action-btn del-btn-sm" onclick="deleteData('${i.id}')">삭제</button></div></td>
+                let w = isWarning(i.type, i.rdate);
+                body.innerHTML += `<tr>
+                    <td>${i.id}</td><td>${i.type}</td><td>${i.cap}</td><td>${i.team}</td><td>${i.building}</td><td>${i.loc}</td><td>${i.maker}</td><td>${i.mdate}</td><td>${i.rdate}</td><td>${i.note}</td><td>${w ? '🚨경고' : '🟢정상'}</td><td>${i.lastCheck}</td>
+                    <td><button class="action-btn check-btn" onclick="markChecked('${i.id}')">점검</button></td>
+                    <td><button class="action-btn edit-btn" onclick="editMode('${i.id}')">수정</button> <button class="action-btn del-btn" onclick="deleteData('${i.id}')">삭제</button></td>
                 </tr>`;
             });
         }
 
-        function markChecked(id) { let i = db.find(x => x.id === id); if(i) { i.lastCheck = new Date().toISOString().split('T')[0]; updateTeamView(); updateDashboard(); } }
-        function deleteData(id) { if(confirm('삭제하시겠습니까?')) { db = db.filter(i => i.id !== id); updateTeamView(); updateDashboard(); } }
-        function addTeam() { let n = prompt("새 팀 이름:"); if(n) { teams.push(n); selectTeam(n); } }
-        function selectTeam(n) { currentTeam = n; renderTabs(); }
-        function renderTabs() { let t = document.getElementById('team-tabs'); t.innerHTML = ''; teams.forEach(name => t.innerHTML += `<button class="tab-btn ${name===currentTeam?'active':''}" onclick="selectTeam('${name}')">${name}</button>`); document.getElementById('input-team').value = currentTeam; document.getElementById('current-team-title').innerText = currentTeam + " 목록"; updateTeamView(); }
-        function handleTypeChange() { if(document.getElementById('input-type').value !== '분말') document.getElementById('input-rdate').value = ''; }
-
-        function addData() {
-            let id = document.getElementById('input-id').value; if(!id) return;
-            let editIdx = parseInt(document.getElementById('edit-index').value);
-            let newData = { id, type: document.getElementById('input-type').value, cap: document.getElementById('input-cap').value, team: currentTeam, building: document.getElementById('input-building').value, loc: document.getElementById('input-loc').value, maker: document.getElementById('input-maker').value, mdate: formatDate(document.getElementById('input-mdate').value), rdate: formatDate(document.getElementById('input-rdate').value), note: document.getElementById('input-note').value, lastCheck: editIdx > -1 ? db[editIdx].lastCheck : '-' };
-            if(editIdx > -1) { db[editIdx] = newData; document.getElementById('edit-index').value = "-1"; document.getElementById('btn-submit').innerText = "데이터 저장하기"; }
-            else { db.push(newData); }
-            updateTeamView(); updateDashboard();
-            document.querySelectorAll('.form-grid input:not(#input-team)').forEach(i => i.value = '');
+        function switchMenu(m) {
+            document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            if (m === 'dashboard') { document.getElementById('btn-menu-dash').classList.add('active'); updateDashboard(); }
+            else { document.getElementById('btn-menu-team').classList.add('active'); updateTeamView(); }
+            document.getElementById(`view-${m}`).classList.add('active');
         }
 
+        function renderTabs() {
+            let t = document.getElementById('team-tabs'); t.innerHTML = '';
+            teams.forEach(name => t.innerHTML += `<button class="tab-btn ${name === currentTeam ? 'active' : ''}" onclick="selectTeam('${name}')">${name}</button>`);
+            document.getElementById('input-team').value = currentTeam;
+            document.getElementById('current-team-title').innerText = currentTeam + " 목록";
+            updateTeamView();
+        }
+
+        function selectTeam(n) { currentTeam = n; renderTabs(); }
+        function autoCalcDate() { let m = document.getElementById('input-mdate').value; if (document.getElementById('input-type').value === '분말' && m) { let d = new Date(m); d.setFullYear(d.getFullYear() + 9); d.setMonth(d.getMonth() + 11); document.getElementById('input-rdate').value = d.toISOString().substring(0, 7); } }
+        function handleTypeChange() { if (document.getElementById('input-type').value !== '분말') document.getElementById('input-rdate').value = ''; }
+        function addData() {
+            let id = document.getElementById('input-id').value; if (!id) return;
+            let editIdx = parseInt(document.getElementById('edit-index').value);
+            let newData = { id, type: document.getElementById('input-type').value, cap: document.getElementById('input-cap').value, team: currentTeam, building: document.getElementById('input-building').value, loc: document.getElementById('input-loc').value, maker: document.getElementById('input-maker').value, mdate: document.getElementById('input-mdate').value, rdate: document.getElementById('input-rdate').value, note: document.getElementById('input-note').value, lastCheck: '-' };
+            if (editIdx > -1) { db[editIdx] = newData; document.getElementById('edit-index').value = "-1"; }
+            else db.push(newData);
+            updateTeamView(); updateDashboard();
+        }
+        function deleteData(id) { if (confirm('삭제하시겠습니까?')) { db = db.filter(i => i.id !== id); updateTeamView(); updateDashboard(); } }
+        function markChecked(id) { db.find(x => x.id === id).lastCheck = new Date().toISOString().substring(0, 10); updateTeamView(); }
         function editMode(id) {
             let item = db.find(i => i.id === id);
             document.getElementById('edit-index').value = db.indexOf(item);
@@ -289,11 +590,12 @@
             document.getElementById('input-mdate').value = item.mdate;
             document.getElementById('input-rdate').value = item.rdate;
             document.getElementById('input-note').value = item.note;
-            document.getElementById('btn-submit').innerText = "✓ 수정 완료";
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+        function addTeam() { let n = prompt("새 팀 이름:"); if (n) { teams.push(n); selectTeam(n); } }
 
         renderTabs(); updateDashboard();
     </script>
 </body>
+
 </html>

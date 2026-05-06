@@ -333,7 +333,7 @@
     </div>
 
     <div class="main-content">
-        <!-- 1. 전체 대시보드 -->
+        <!-- 1. 전체 대시보드 (엑셀 양식 적용) -->
         <div id="view-dashboard" class="view-section active">
             <h1>전사 관리 현황</h1>
             <div class="viz-container">
@@ -356,7 +356,7 @@
                                 style="height:100%; background:#16a34a; border-radius:4px; width:0%;"></div>
                         </div>
                         <div style="display:flex; justify-content:space-between; font-size:12px; color:#dc2626;">
-                            <span>🚨 교체 경고 (6개월 이내)</span><span id="dash-warning-txt">0</span></div>
+                            <span>🚨 교체 경고</span><span id="dash-warning-txt">0</span></div>
                         <div style="width:100%; height:8px; background:#eee; border-radius:4px;">
                             <div id="dash-warning-bar"
                                 style="height:100%; background:#dc2626; border-radius:4px; width:0%;"></div>
@@ -365,25 +365,24 @@
                 </div>
             </div>
             <div class="table-wrapper">
-                <!-- [복구] 통합 목록 상단 팀 선택 드롭다운 -->
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h3 style="margin:0;">통합 목록</h3>
+                    <h3>통합 목록</h3>
                     <select id="dash-team-filter" onchange="updateDashboard()"
-                        style="padding:6px; border-radius:4px; border:1px solid #ddd; font-size:11px;">
-                        <option value="all">전체 팀 보기</option>
-                    </select>
+                        style="padding:6px; border-radius:4px; font-size:11px;"></select>
                 </div>
-                <table>
+                <table style="min-width: 1400px;">
                     <thead>
                         <tr>
-                            <th>관리번호</th>
+                            <th>소화기관리번호</th>
                             <th>종류</th>
                             <th>용량</th>
                             <th>해당부서</th>
                             <th>건물명</th>
                             <th>세부위치</th>
+                            <th>제조업체명</th>
                             <th>제조일</th>
-                            <th>교체일</th>
+                            <th>교체예정일</th>
+                            <th>변경/조치내역</th>
                             <th>상태</th>
                             <th>최근점검</th>
                         </tr>
@@ -393,7 +392,7 @@
             </div>
         </div>
 
-        <!-- 2. 팀별 관리대장 -->
+        <!-- 2. 팀별 관리대장 (엑셀 양식 적용) -->
         <div id="view-team" class="view-section">
             <div class="header-area">
                 <div class="header-left">
@@ -457,19 +456,23 @@
 
             <div class="table-wrapper">
                 <h3 id="current-team-title">목록</h3>
-                <table style="min-width: 1100px;">
+                <table style="min-width: 1500px;">
                     <thead>
                         <tr>
-                            <th>관리번호</th>
+                            <th>소화기관리번호</th>
                             <th>종류</th>
                             <th>용량</th>
-                            <th>위치</th>
+                            <th>해당부서</th>
+                            <th>건물명</th>
+                            <th>세부위치</th>
+                            <th>제조업체명</th>
                             <th>제조일</th>
-                            <th>교체일</th>
+                            <th>교체예정일</th>
+                            <th>변경/조치내역</th>
                             <th>상태</th>
                             <th>최근점검</th>
                             <th>점검</th>
-                            <th>수정/삭제</th>
+                            <th>내용수정</th>
                         </tr>
                     </thead>
                     <tbody id="team-table-body"></tbody>
@@ -479,25 +482,13 @@
     </div>
 
     <script>
-        // 임의 샘플 데이터 기입 (데이터 누락 방지)
+        // 엑셀 명칭 기반 매칭 로직
         let db = [
             { id: '제조4-1F-01', type: '분말', cap: '20KG', team: '제조4팀', building: 'T2-8동', loc: '1층 계단 앞', maker: '한국소방', mdate: '2016-02-02', rdate: '2026-01-02', note: '-', lastCheck: '2026-05-04' },
-            { id: '제조4-1F-02', type: '분말', cap: '3.3KG', team: '제조4팀', building: 'T2-8동', loc: '1층 출입구', maker: '한울', mdate: '2016-11-01', rdate: '2026-10-01', note: '-', lastCheck: '2026-05-04' },
-            { id: '전해-1F-10', type: '분말', cap: '6KG', team: '전해액제조팀', building: '본관', loc: '복도', maker: '일명', mdate: '2017-11-09', rdate: '2027-10-09', note: '-', lastCheck: '-' },
-            { id: '시설-E-01', type: '분말', cap: '3.3KG', team: '시설관리팀', building: 'T3-1동', loc: '변전실', maker: '한울', mdate: '2016-05-01', rdate: '2026-04-01', note: '-', lastCheck: '2026-05-06' }
+            { id: '전해-1F-10', type: '분말', cap: '6KG', team: '전해액제조팀', building: '본관', loc: '복도', maker: '일명', mdate: '2017-11-09', rdate: '2027-10-09', note: '-', lastCheck: '-' }
         ];
         let teams = ['전해액제조팀', '제조4팀', '시설관리팀', '공무팀'];
         let currentTeam = '전해액제조팀';
-
-        function autoCalcDate() {
-            let mdate = document.getElementById('input-mdate').value;
-            if (document.getElementById('input-type').value === '분말' && mdate) {
-                let d = new Date(mdate);
-                d.setFullYear(d.getFullYear() + 9);
-                d.setMonth(d.getMonth() + 11);
-                document.getElementById('input-rdate').value = d.toISOString().split('T')[0];
-            }
-        }
 
         function importExcel(event) {
             const file = event.target.files[0];
@@ -506,15 +497,35 @@
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+
+                // [수정] 사진 속 10개 명칭과 1:1 매칭
                 json.forEach(row => {
                     db.push({
-                        id: row['소화기관리번호'] || '미기입', type: row['종류'] || '분말', cap: row['용량'] || '', team: row['해당부서'] || currentTeam,
-                        building: row['건물명'] || '', loc: row['세부위치'] || '', maker: row['제조업체명'] || '', mdate: row['제조일'] || '-', rdate: row['교체예정일'] || '-', note: row['변경/조치내역'] || '', lastCheck: '-'
+                        id: row['소화기관리번호'] || '미기입',
+                        type: row['종류'] || '분말',
+                        cap: row['용량'] || '',
+                        team: row['해당부서'] || currentTeam,
+                        building: row['건물명'] || '',
+                        loc: row['세부위치'] || '',
+                        maker: row['제조업체명'] || '',
+                        mdate: row['제조일'] || '-',
+                        rdate: row['교체예정일'] || '-',
+                        note: row['변경/조치내역'] || '',
+                        lastCheck: '-'
                     });
                 });
-                updateDashboard(); updateTeamView(); alert('데이터 연동 완료!');
+                updateDashboard(); updateTeamView(); alert('엑셀 데이터 로드 완료!');
             };
             reader.readAsArrayBuffer(file);
+        }
+
+        function autoCalcDate() {
+            let mdate = document.getElementById('input-mdate').value;
+            if (document.getElementById('input-type').value === '분말' && mdate) {
+                let d = new Date(mdate);
+                d.setFullYear(d.getFullYear() + 9); d.setMonth(d.getMonth() + 11);
+                document.getElementById('input-rdate').value = d.toISOString().split('T')[0];
+            }
         }
 
         function switchMenu(m) {
@@ -527,33 +538,27 @@
 
         function isWarning(t, r) {
             if (t !== '분말' || !r || r === '-') return false;
-            let d = (new Date(r) - new Date()) / (1000 * 60 * 60 * 24);
-            return d <= 180;
+            let d = (new Date(r) - new Date()) / (1000 * 60 * 60 * 24); return d <= 180;
         }
 
         function updateDashboard() {
             let f = document.getElementById('dash-team-filter');
             let val = f.value || 'all';
-
-            // 필터 목록 동적 생성
             f.innerHTML = '<option value="all">전체 팀 보기</option>';
             teams.forEach(t => f.innerHTML += `<option value="${t}" ${t === val ? 'selected' : ''}>${t}</option>`);
-
             let data = (val === 'all') ? db : db.filter(i => i.team === val);
             let total = data.length, warn = data.filter(i => isWarning(i.type, i.rdate)).length, norm = total - warn;
             let pct = total > 0 ? (norm / total) * 100 : 0;
-
             document.getElementById('dash-total').innerText = total;
             document.getElementById('dash-normal-txt').innerText = norm;
             document.getElementById('dash-warning-txt').innerText = warn;
             document.getElementById('dash-normal-bar').style.width = pct + '%';
             document.getElementById('dash-warning-bar').style.width = (total > 0 ? (warn / total) * 100 : 0) + '%';
             document.getElementById('total-donut').style.background = `conic-gradient(#16a34a 0% ${pct}%, #dc2626 ${pct}% 100%)`;
-
             let body = document.getElementById('all-table-body'); body.innerHTML = '';
             data.forEach(i => {
                 let w = isWarning(i.type, i.rdate);
-                body.innerHTML += `<tr><td>${i.id}</td><td>${i.type}</td><td>${i.cap}</td><td>${i.team}</td><td>${i.building}</td><td>${i.loc}</td><td>${i.mdate}</td><td>${i.rdate}</td><td>${w ? '🚨경고' : '🟢정상'}</td><td>${i.lastCheck}</td></tr>`;
+                body.innerHTML += `<tr><td>${i.id}</td><td>${i.type}</td><td>${i.cap}</td><td>${i.team}</td><td>${i.building}</td><td>${i.loc}</td><td>${i.maker}</td><td>${i.mdate}</td><td>${i.rdate}</td><td>${i.note}</td><td>${w ? '🚨경고' : '🟢정상'}</td><td>${i.lastCheck}</td></tr>`;
             });
         }
 
@@ -564,12 +569,11 @@
             document.getElementById('team-co2-num').innerText = data.filter(i => i.type === 'CO2').length;
             document.getElementById('team-clean-num').innerText = data.filter(i => i.type === '청정').length;
             document.getElementById('team-warn-num').innerText = data.filter(i => isWarning(i.type, i.rdate)).length;
-
             let body = document.getElementById('team-table-body'); body.innerHTML = '';
             data.forEach(i => {
                 let w = isWarning(i.type, i.rdate), isDone = i.lastCheck === new Date().toISOString().split('T')[0];
                 body.innerHTML += `<tr class="${w ? 'danger' : ''}">
-                    <td>${i.id}</td><td>${i.type}</td><td>${i.cap}</td><td>${i.loc}</td><td>${i.mdate}</td><td>${i.rdate}</td><td>${w ? '🚨경고' : '🟢정상'}</td><td>${i.lastCheck}</td>
+                    <td>${i.id}</td><td>${i.type}</td><td>${i.cap}</td><td>${i.team}</td><td>${i.building}</td><td>${i.loc}</td><td>${i.maker}</td><td>${i.mdate}</td><td>${i.rdate}</td><td>${i.note}</td><td>${w ? '🚨경고' : '🟢정상'}</td><td>${i.lastCheck}</td>
                     <td><button class="action-btn check-btn ${isDone ? 'done' : ''}" onclick="markChecked('${i.id}')">${isDone ? '완료' : '점검'}</button></td>
                     <td><div style="display:flex; gap:2px;"><button class="action-btn edit-btn-sm" onclick="editMode('${i.id}')">수정</button><button class="action-btn del-btn-sm" onclick="deleteData('${i.id}')">삭제</button></div></td>
                 </tr>`;
